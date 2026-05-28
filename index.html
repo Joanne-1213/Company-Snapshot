@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>기업 재무제표</title>
+  <style>
+    body { font-family: sans-serif; max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 0; }
+    .tab-btn {
+      padding: 10px 24px;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      background: #f0f0f0;
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      font-size: 15px;
+      color: #555;
+    }
+    .tab-btn.active {
+      background: #2c3e50;
+      color: white;
+      font-weight: bold;
+    }
+
+    .tab-content { display: none; border: 1px solid #ddd; border-radius: 0 6px 6px 6px; padding: 20px; overflow-x: auto; }
+    .tab-content.active { display: block; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 200px; }
+    th { background: #2c3e50; color: white; }
+    tr:nth-child(even) { background: #f5f5f5; }
+    tr:hover { background: #eaf0fb; }
+
+    .loading { color: #888; }
+  </style>
+</head>
+<body>
+  <h1>📊 기업 재무제표</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab(0)">재무상태표</button>
+    <button class="tab-btn" onclick="showTab(1)">손익계산서</button>
+    <button class="tab-btn" onclick="showTab(2)">현금흐름표</button>
+  </div>
+
+  <div class="tab-content active" id="tab-0"><p class="loading">불러오는 중...</p></div>
+  <div class="tab-content" id="tab-1"><p class="loading">불러오는 중...</p></div>
+  <div class="tab-content" id="tab-2"><p class="loading">불러오는 중...</p></div>
+
+  <script>
+    const FILES = [
+      { label: '재무상태표', path: 'data/balance_sheet.csv' },
+      { label: '손익계산서', path: 'data/income_statement.csv' },
+      { label: '현금흐름표', path: 'data/cash_flow.csv' },
+    ];
+
+    function csvToTable(csv) {
+      // \r\n, \r 모두 처리
+      const lines = csv.trim().split(/\r?\n/);
+      const headers = lines[0].split(',');
+
+      let html = '<table><thead><tr>';
+      headers.forEach(h => html += `<th>${h.trim()}</th>`);
+      html += '</tr></thead><tbody>';
+
+      lines.slice(1).forEach(line => {
+        if (!line.trim()) return; // 빈 줄 건너뜀
+        const cells = line.split(',');
+        html += '<tr>';
+        cells.forEach((cell, i) => {
+          const trimmed = cell.trim();
+          let val;
+          if (i === 0) {
+            // 계정명: 그대로 표시
+            val = trimmed;
+          } else {
+            // 숫자 데이터: 빈값이면 -, 숫자면 천단위 콤마
+            const num = Number(trimmed);
+            val = trimmed === '' ? '-' : (isNaN(num) ? trimmed : num.toLocaleString());
+          }
+          html += `<td>${val}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table>';
+      return html;
+    }
+
+    function showTab(index) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.tab-content').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+      });
+    }
+
+    FILES.forEach((file, i) => {
+      fetch(file.path)
+        .then(r => {
+          if (!r.ok) throw new Error('not found');
+          return r.text();
+        })
+        .then(csv => {
+          document.getElementById(`tab-${i}`).innerHTML = csvToTable(csv);
+        })
+        .catch(() => {
+          document.getElementById(`tab-${i}`).innerHTML =
+            `❌ <b>${file.path}</b> 파일을 불러오지 못했습니다.`;
+        });
+    });
+  </script>
+</body>
+</html>
