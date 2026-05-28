@@ -17,7 +17,7 @@
   <div id="table-container">불러오는 중...</div>
 
   <script>
-    fetch('data/financials.csv')
+    fetch('data/financials_v2.csv')
       .then(r => r.text())
       .then(csv => {
         const rows = csv.trim().split('\n').map(r => r.split(','));
