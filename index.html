@@ -1,41 +1,14 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>기업 재무제표</title>
-  <style>
-    body { font-family: sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
-    th:first-child, td:first-child { text-align: left; }
-    th { background: #2c3e50; color: white; }
-    tr:nth-child(even) { background: #f5f5f5; }
-  </style>
-</head>
-<body>
-  <h1>📊 기업 재무제표</h1>
-  <div id="table-container">불러오는 중...</div>
-
-  <script>
-    fetch('data/financials_v2.csv')
-      .then(r => r.text())
-      .then(csv => {
-        const rows = csv.trim().split('\n').map(r => r.split(','));
-        const headers = rows[0];
-        let html = '<table><thead><tr>';
-        headers.forEach(h => html += `<th>${h}</th>`);
-        html += '</tr></thead><tbody>';
-        rows.slice(1).forEach(row => {
-          html += '<tr>';
-          row.forEach((cell, i) => {
-            const val = i > 0 ? Number(cell).toLocaleString() : cell;
-            html += `<td>${val}</td>`;
-          });
-          html += '</tr>';
-        });
-        html += '</tbody></table>';
-        document.getElementById('table-container').innerHTML = html;
-      });
-  </script>
-</body>
-</html>
+rows.slice(1).forEach(row => {
+  html += '<tr>';
+  row.forEach((cell, i) => {
+    const trimmed = cell.trim();
+    // 빈 값이면 그대로, 숫자면 천단위 콤마, 아니면 텍스트
+    const val = i === 0
+      ? trimmed
+      : (trimmed === '' || trimmed === 'NA' || trimmed === '<NA>'
+          ? '-'
+          : Number(trimmed).toLocaleString());
+    html += `<td>${val}</td>`;
+  });
+  html += '</tr>';
+});
